@@ -26,3 +26,39 @@ def plot_usable(table, max_cloud, path):
     fig.colorbar(im, ax=ax, shrink=0.8)
     fig.tight_layout()
     fig.savefig(path, dpi=150)
+
+
+def report(df, max_cloud, baseline, out):
+    print(
+        f"\n{len(df)} items, {df['date'].nunique()} distinct dates, "
+        f"{df['datetime'].min().date()} -> {df['datetime'].max().date()}"
+    )
+    print("\nItems per MGRS tile:\n", df["tile"].value_counts(dropna=False).to_string())
+
+    print("\nProcessing baseline by year:")
+    print(df.groupby(["year", "baseline"]).size().unstack(fill_value=0).to_string())
+
+    print("\nBOA offset applied by Earth Search, by year:")
+    flag = df["boa_offset_applied"].astype(str).rename("boa_offset_applied")
+    print(df.groupby(["year", flag]).size().unstack(fill_value=0).to_string())
+
+    print("\nMedian scene cloud cover by year (%):")
+    print(df.groupby("year")["cloud_cover"].median().round(1).to_string())
+
+    table = usable_dates_table(df, max_cloud)
+    print(f"\nUsable dates per month (<= {max_cloud:.0f}% cloud):")
+    print(table.to_string())
+
+    b0, b1 = (int(x) for x in baseline.split("-"))
+    base = table.loc[b0:b1]
+    weak = [
+        (int(y), int(m), int(base.at[y, m]))
+        for y in base.index
+        for m in base.columns
+        if base.at[y, m] < 2
+    ]
+    print(f"\nBaseline months ({b0}-{b1}) with fewer than 2 usable dates: {len(weak)}")
+    for y, m, n in weak:
+        print(f"  {y}-{m:02d}: {n}")
+
+    plot_usable(table, max_cloud, out / "usable_dates.png")

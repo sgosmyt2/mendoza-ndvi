@@ -57,7 +57,7 @@ def drop_superceded(items):
     return kept
 
 
-def search_items(geom, start, end, collection=COLLECTION, retries=4):
+def search_items(geom, start, end, collection=COLLECTION, retries=4, dedupe=True):
     """All L2A items intersecting the AOI between start and end dates"""
     client = Client.open(STAC_URL)
     items = []
@@ -80,6 +80,11 @@ def search_items(geom, start, end, collection=COLLECTION, retries=4):
                 time.sleep(wait)
         print(f"    {a} -> {b}: {len(chunk)} items")
         items.extend(chunk)
+
+    if dedupe:
+        n = len(items)
+        items = drop_superceded(items)
+        print(f"    dropped {n - len(items)} superceded duplicates, kept {len(items)}")
     return items
 
 

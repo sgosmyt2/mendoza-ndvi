@@ -20,3 +20,15 @@ def aoi_bbox(geom):
     pts = [pt for ring in geom["coordinates"] for pt in ring]
     xs, ys = zip(*pts)
     return min(xs), min(ys), max(xs), max(ys)
+
+
+def search_items(geom, start, end):
+    """All L2A items intersecting the AOI between start and end dates"""
+    client = Client.open(STAC_URL)
+    search = client.search(
+        collections=[COLLECTION],
+        intersects=geom,
+        datetime=f"{start}/{end}",
+        limit=500,
+    )
+    return list(search.items())

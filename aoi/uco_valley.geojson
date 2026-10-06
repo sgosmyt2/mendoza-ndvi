@@ -1,0 +1,19 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {"name": "Uco Valley"},
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                    [-69.20, -33.75],
+                    [-68.90, -33.75],
+                    [-68.90, -33.48],
+                    [-69.20, -33.48],
+                    [-69.20, -33.75]
+                ]]
+            }
+        }
+    ]
+}

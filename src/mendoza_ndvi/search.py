@@ -36,7 +36,7 @@ def year_chunks(start, end):
     return chunks
 
 
-def search_items(geom, start, end, retries=4):
+def search_items(geom, start, end, collection=COLLECTION, retries=4):
     """All L2A items intersecting the AOI between start and end dates"""
     client = Client.open(STAC_URL)
     items = []
@@ -44,7 +44,7 @@ def search_items(geom, start, end, retries=4):
         for attempt in range(retries):
             try:
                 search = client.search(
-                    collections=[COLLECTION],
+                    collections=[collection],
                     intersects=geom,
                     datetime=f"{a}/{b}",
                     limit=100,

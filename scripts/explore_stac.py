@@ -67,16 +67,17 @@ def report(df, max_cloud, baseline, out):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2017-01-01")
-    ap.add_argument("--end", default=date.today().isoformat())
+    ap.add_argument("--end", default=date.today().isoformat())  # noqa: DTZ011
     ap.add_argument("--max-cloud", type=float, default=30.0)
     ap.add_argument("--baseline", default="2018-2022")
     ap.add_argument("--out", default="data")
+    ap.add_argument("--collection", default="sentinel-2-l2a")
     args = ap.parse_args()
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    df = items_to_frame(search_items(load_aoi(), args.start, args.end))
+    df = items_to_frame(search_items(load_aoi(), args.start, args.end, args.collection))
     if df.empty:
         raise SystemExit("No items found. Check dates/AOI/endpoint.")
     df.drop(columns=["date"]).to_csv(out / "scenes.csv", index=False)

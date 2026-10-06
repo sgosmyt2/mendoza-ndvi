@@ -8,3 +8,9 @@ STAC_URL = "https://earth-search.aws.element84.com/v1"
 COLLECTION = "sentinel-2-12a"
 AOI_PATH = Path(__file__).resolve().parents[2] / "aoi" / "uco_valley.geojson"
 UTM_CRS = "EPSG:32719"
+
+
+def load_aoi(aoi_path):
+    """Return the first polygon geometry of AOI geojson"""
+    gj = json.loads(Path(aoi_path).read_text())
+    return gj["features"][0]["geometry"] if gj["type"] == "FeatureCollection" else gj

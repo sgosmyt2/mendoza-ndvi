@@ -1,8 +1,10 @@
 import json
+import time
 from pathlib import Path
 
 import pandas as pd
 from pystac_client import Client
+from pystac_client.exceptions import APIError
 
 STAC_URL = "https://earth-search.aws.element84.com/v1"
 COLLECTION = "sentinel-2-l2a"
@@ -22,16 +24,42 @@ def aoi_bbox(geom):
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def search_items(geom, start, end):
+def year_chunks(start, end):
+    """Split [start, end] into calendar year pieces, as YYYY-MM-DD string pairs"""
+    s, e = pd.Timestamp(start), pd.Timestamp(end)
+    chunks = []
+    cur = s
+    while cur <= e:
+        stop = min(pd.Timestamp(year=cur.year, month=12, day=31), e)
+        chunks.append((cur.strftime("%Y-%m-%d"), stop.strftime("%Y-%m-%d")))
+        cur = stop + pd.Timestamp(days=1)
+    return chunks
+
+
+def search_items(geom, start, end, retries=4):
     """All L2A items intersecting the AOI between start and end dates"""
     client = Client.open(STAC_URL)
-    search = client.search(
-        collections=[COLLECTION],
-        intersects=geom,
-        datetime=f"{start}/{end}",
-        limit=500,
-    )
-    return list(search.items())
+    items = []
+    for a, b in year_chunks(start, end):
+        for attempt in range(retries):
+            try:
+                search = client.search(
+                    collections=[COLLECTION],
+                    intersects=geom,
+                    datetime=f"{a}/{b}",
+                    limit=100,
+                )
+                chunk = list(search.items())
+                break
+            except APIError as err:
+                if attempt == retries - 1:
+                    raise
+                wait = 2 ** (attempt + 1)
+                print(f"    server error for {a}/{b} ({err}); retrying in {wait}s")
+                time.sleep(wait)
+        print(f"    {a} -> {b}: {len(chunk)} items")
+        items.extend(chunk)
+    return items
 
 
 def items_to_frame(items):

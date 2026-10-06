@@ -32,3 +32,30 @@ def search_items(geom, start, end):
         limit=500,
     )
     return list(search.items())
+
+
+def items_to_frame(items):
+    """Flatten STAC items into a table"""
+    cols = ["id", "datetime", "cloud_cover", "tile", "baseline", "nodata_pct"]
+    rows = []
+    for i in items:
+        p = i.properties
+        rows.append(
+            {
+                "id": i.id,
+                "datetime": i.datetime,
+                "cloud_cover": p.get("eo:cloud_cover"),
+                "tile": p.get("grid:code"),
+                "baseline": p.get("s2:processing_baseline"),
+                "nodata_pct": p.get("s2:nodata_pixel_percentage"),
+            }
+        )
+    df = pd.DataFrame(rows, columns=cols)
+    if df.empty:
+        return df
+    df["datetime"] = pd.to_datetime(df["datetime"], utc=True)
+    df["date"] = df["datetime"].dt.date
+    df["year"] = df["datetime"].dt.year
+    df["month"] = df["datetime"].dt.month
+
+    return df.sort_values("datetime").reset_index(drop=True)

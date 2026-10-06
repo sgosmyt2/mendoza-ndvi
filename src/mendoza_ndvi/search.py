@@ -32,7 +32,7 @@ def year_chunks(start, end):
     while cur <= e:
         stop = min(pd.Timestamp(year=cur.year, month=12, day=31), e)
         chunks.append((cur.strftime("%Y-%m-%d"), stop.strftime("%Y-%m-%d")))
-        cur = stop + pd.Timestamp(days=1)
+        cur = stop + pd.Timedelta(days=1)
     return chunks
 
 

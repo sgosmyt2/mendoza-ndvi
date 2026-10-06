@@ -59,3 +59,14 @@ def items_to_frame(items):
     df["month"] = df["datetime"].dt.month
 
     return df.sort_values("datetime").reset_index(drop=True)
+
+
+def usable_date_tables(df, max_cloud):
+    """Year x month table: distinct dates with at least one scene under max_cloud.
+
+    Scene cloud cover is only a rough guide, the real mask is pixel level (SCL).
+    """
+    ok = df[df["cloud_cover"] <= max_cloud]
+    table = ok.groupby(["year", "month"])["date"].nunique().unstack(fill_value=0)
+    years = range(int(df["year"].min()), int(df["year"].max()) + 1)
+    return table.reindex(index=years, columns=range(1, 13), fill_value=0)

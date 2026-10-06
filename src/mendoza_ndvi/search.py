@@ -36,6 +36,27 @@ def year_chunks(start, end):
     return chunks
 
 
+def drop_superceded(items):
+    """Keep one processing version per tile and date.
+
+    Earthsearch holds reprocessed copies (baseline 05.00) next to the original scenes for 2018-2021. For
+    each (tile, date) keep only the items with the highest processing baseline. Items that are tied are
+    all kept.
+    """
+    groups = {}
+    for i in items:
+        key = (i.properties.get("grid:code"), i.datetime.date())
+        groups.setdefault(key, []).append(i)
+
+    kept = []
+    for group in groups.values():
+        best = max(i.properties.get("s2:processing_baseline", "") for i in group)
+        kept.extend(
+            i for i in group if i.properties.get("s2:processing_baseline", "") == best
+        )
+    return kept
+
+
 def search_items(geom, start, end, collection=COLLECTION, retries=4):
     """All L2A items intersecting the AOI between start and end dates"""
     client = Client.open(STAC_URL)

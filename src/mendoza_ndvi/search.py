@@ -14,3 +14,9 @@ def load_aoi(aoi_path):
     """Return the first polygon geometry of AOI geojson"""
     gj = json.loads(Path(aoi_path).read_text())
     return gj["features"][0]["geometry"] if gj["type"] == "FeatureCollection" else gj
+
+
+def aoi_bbox(geom):
+    pts = [pt for ring in geom["coordinates"] for pt in ring]
+    xs, ys = zip(*pts)
+    return min(xs), min(ys), max(xs), max(ys)

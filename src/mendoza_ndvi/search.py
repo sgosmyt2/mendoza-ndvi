@@ -36,7 +36,15 @@ def search_items(geom, start, end):
 
 def items_to_frame(items):
     """Flatten STAC items into a table"""
-    cols = ["id", "datetime", "cloud_cover", "tile", "baseline", "nodata_pct"]
+    cols = [
+        "id",
+        "datetime",
+        "cloud_cover",
+        "tile",
+        "baseline",
+        "nodata_pct",
+        "boa_offset_applied",
+    ]
     rows = []
     for i in items:
         p = i.properties
@@ -48,6 +56,7 @@ def items_to_frame(items):
                 "tile": p.get("grid:code"),
                 "baseline": p.get("s2:processing_baseline"),
                 "nodata_pct": p.get("s2:nodata_pixel_percentage"),
+                "boa_offset_applied": p.get("earthsearch:boa_offset_applied"),
             }
         )
     df = pd.DataFrame(rows, columns=cols)

@@ -1,0 +1,19 @@
+name: mendoza_ndvi
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pystac-client
+  - odc-stac
+  - rioxarray
+  - xarray
+  - dask
+  - numpy
+  - pandas
+  - geopandas
+  - shapely
+  - pyarrow
+  - rasterio
+  - matplotlib
+  - pytest
+  - pip

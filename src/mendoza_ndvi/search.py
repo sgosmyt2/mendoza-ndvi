@@ -70,7 +70,7 @@ def items_to_frame(items):
     return df.sort_values("datetime").reset_index(drop=True)
 
 
-def usable_date_tables(df, max_cloud):
+def usable_dates_table(df, max_cloud):
     """Year x month table: distinct dates with at least one scene under max_cloud.
 
     Scene cloud cover is only a rough guide, the real mask is pixel level (SCL).

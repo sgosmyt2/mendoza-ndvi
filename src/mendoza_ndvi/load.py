@@ -15,7 +15,7 @@ SHIFT_TO = date(2022, 2, 24)
 def dn_shift(item):
     """DN to add to a secnes stored values so reflectance = (DN + shift) * 1e-4"""
     p = item.properties
-    in_window = SHIFT_FROM <= item.datetime.get() <= SHIFT_TO
+    in_window = SHIFT_FROM <= item.datetime.date() <= SHIFT_TO
     if (
         p.get("s2:processing_baseline") == "04.00"
         and p.get("earthsearch:boa_offset_applied") is False

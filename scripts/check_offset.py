@@ -123,6 +123,10 @@ def main():
         rows = process_month(
             month_items, bbox, args.res, args.workers, args.min_pixels, failures
         )
+        if failures and not rows and len(failures) == len(month_items):
+            print(f"{key}: ALL {len(failures)} scenes failed. First error:")
+            print(f"  {failures[0]['error']}")
+            raise SystemExit("Stopping: looks like a bug with the code.")
         if rows:
             pd.DataFrame(rows).to_csv(
                 csv_path, mode="a", header=not csv_path.exists(), index=False

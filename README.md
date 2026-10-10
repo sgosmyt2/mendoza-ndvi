@@ -6,6 +6,16 @@ Cloud native Sentinel 2 pipeline that measures vegetation anomalies over the Uco
 
 **Stack**: Python, pystac-client, odc-stac, xarray, rioxarray, dask, geopandas, scikit-learn
 
+## Progress
+
+- [x] Project setup and AOI
+- [x] STAC exploration and load benchmark
+- [ ] Lazy load and SCL masking
+- [ ] Monthly NDVI composites
+- [ ] Climatology and zscore anomalies
+- [ ] COG + GeoParquet export
+- [ ] Methods note, tests, CI
+
 ## What it does
 
 1. Searches Sentinel 2 L2A scenes over the AOI.

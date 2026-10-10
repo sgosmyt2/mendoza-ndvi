@@ -10,6 +10,7 @@ STAC_URL = "https://earth-search.aws.element84.com/v1"
 COLLECTION = "sentinel-2-l2a"
 AOI_PATH = Path(__file__).resolve().parents[2] / "aoi" / "uco_valley.geojson"
 UTM_CRS = "EPSG:32719"
+READ_BANDS = ("red", "nir", "scl")
 
 
 def load_aoi(aoi_path=AOI_PATH):
@@ -55,6 +56,19 @@ def drop_superceded(items):
             i for i in group if i.properties.get("s2:processing_baseline", "") == best
         )
     return kept
+
+
+def is_cog(item):
+    """True if every band is cloud optimised GeoTIFF.
+
+    A few old scenes exist only as JPEG in a different bucket, they can't
+    be streamed and GDAL needs an extra driver to open them.
+    """
+    for band in READ_BANDS:
+        asset = item.assets.get(band)
+        if asset is None or "tiff" not in (asset.media_type or ""):
+            return False
+    return True
 
 
 def search_items(geom, start, end, collection=COLLECTION, retries=4, dedupe=True):

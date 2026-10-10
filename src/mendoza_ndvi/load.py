@@ -43,6 +43,7 @@ def load_group(items, shift, bbox, res):
     for band in ("red", "nir"):
         dn = raw[band].astype("float32")
         refl = ((dn + shift) * SCALE).clip(min=0)
+        out[band] = refl.where(raw[band] != 0)
     out["scl"] = raw["scl"].astype("float32").where(raw["scl"] != 0)
     return out.assign_coords(time=raw.time.dt.floor("D"))
 

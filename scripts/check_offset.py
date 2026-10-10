@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from sched import scheduler
 
 import dask
 import numpy as np
@@ -16,6 +17,21 @@ def scale_offset(item, band="red"):
     """Scale and offset recorded in the item's own metadata (None if absent)."""
     rb = item.assets[band].extra_fields.get("raster:bands", [{}])[0]
     return rb.get("scale"), rb.get("offset")
+
+
+def load_items(items, bbox, res, workers):
+    ds = odc.stac.load(
+        items,
+        bands=["red", "nir", "scl"],
+        bbox=bbox,
+        crs=UTM_CRS,
+        resolution=res,
+        groupby="id",
+        chunks={"x": 1024, "y": 1024},
+        resampling="nearest",
+    )
+    with dask.config.set(scheduler="threas", num_workers=workers):
+        return ds.compute()
 
 
 def main():

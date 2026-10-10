@@ -34,6 +34,30 @@ def load_items(items, bbox, res, workers):
         return ds.compute()
 
 
+def measure(item, sl, min_pixels):
+    """Median red/NIR of bare soil pixels in one scene, or None if too few."""
+    red = sl.red.values.astype("float64")
+    nir = sl.nir.values.astype("float64")
+    ok = (sl.scl.values == BARE_SOIL) & (red > 0) & (nir > 0)
+    n = int(ok.sum())
+    if n < min_pixels:
+        return None
+    scale, offset = scale_offset(item)
+    red_dn, nir_dn = np.median(red[ok]), np.median(nir[ok])
+    return {
+        "date": item.datetime.date(),
+        "tile": item.properties.get("grid:code"),
+        "baseline": item.properties.get("s2:processing_baseline"),
+        "boa_flag": item.properties.get("earthsearch:boa_offset_applied"),
+        "offset": offset,
+        "n_px": n,
+        "red_dn": round(red_dn),
+        "nir_dn": round(nir_dn),
+        "red_item_offset": round(red_dn * (scale or 1e-4) + (offset or 0), 3),
+        "red_scale_only": round(red_dn * 1e-4, 3),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2021-11-01")

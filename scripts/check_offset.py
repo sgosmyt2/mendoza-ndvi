@@ -1,4 +1,5 @@
 import argparse
+from datetime import date
 from pathlib import Path
 from sched import scheduler
 
@@ -91,90 +92,54 @@ def process_month(items, bbox, res, workers, min_pixels, failures):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--start", default="2021-11-01")
-    ap.add_argument("--end", default="2022-03-31")
-    ap.add_argument("--res", type=int, default=60)
-    ap.add_argument("--min-pixels", type=int, default=500)
-    ap.add_argument("--out", default="data")
+    ap.add_argument("--start", default="2018-01-01")
+    ap.add_argument("--end", default=date.today().isoformat())  # noqa: DTZ011
+    ap.add_argument("--res", type=int, default=120)
+    ap.add_argument("--min-pixels", type=int, default=100)
+    ap.add_argument("--workers", type=int, default=16)
+    ap.add_argument("--out", default="data/offset_all")
     args = ap.parse_args()
 
-    geom = load_aoi()
-    items = search_items(geom, args.start, args.end)
-
-    odc.stac.configure_rio(cloud_defaults=True, aws={"aws_unsigned": True})
-    ds = odc.stac.load(
-        items,
-        bands=["red", "nir", "scl"],
-        bbox=aoi_bbox(geom),
-        crs=UTM_CRS,
-        resolution=args.res,
-        groupby="id",
-        chunks={"x": 1024, "y": 1024},
-        resampling="nearest",
-    )
-    print(f"red dtype: {ds.red.dtype}, attrs: {ds.red.attrs}")
-    with dask.config.set(scheduler="threads", num_workers=16):
-        ds = ds.compute()
-
-    by_time = {pd.Timestamp(it.datetime).tz_convert(None): it for it in items}
-    if len(by_time) != len(items) or ds.sizes["time"] != len(items):
-        raise SystemExit(
-            f"Could not map time slices to items: {len(items)} items, "
-            f"{len(by_time)} unique times, {ds.sizes['time']} slices."
-        )
-
-    rows = []
-    for i, t in enumerate(pd.to_datetime(ds.time.values)):
-        it = by_time[t]
-        red = ds.red.isel(time=i).values.astype("float64")
-        nir = ds.nir.isel(time=i).values.astype("float64")
-        scl = ds.scl.isel(time=i).values
-        ok = (scl == BARE_SOIL) & (red > 0) & (nir > 0)
-        n = int(ok.sum())
-        if n < args.min_pixels:
-            continue
-        scale, offset = scale_offset(it)
-        red_dn, nir_dn = np.median(red[ok]), np.median(nir[ok])
-        rows.append(
-            {
-                "date": t.date(),
-                "tile": it.properties.get("grid:code"),
-                "baseline": it.properties.get("s2:processing_baseline"),
-                "boa_flag": it.properties.get("earthsearch:boa_offset_applied"),
-                "offset": offset,
-                "n_px": n,
-                "red_dn": round(red_dn),
-                "nir_dn": round(nir_dn),
-                "red_item_offset": round(red_dn * (scale or 1e-4) + (offset or 0), 3),
-                "red_scale_only": round(red_dn * 1e-4, 3),
-            }
-        )
-
-    df = pd.DataFrame(rows).sort_values("date").reset_index(drop=True)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    df.to_csv(out / "offset_check.csv", index=False)
+    csv_path = out / "offset_check.csv"
+    fail_path = out / "failures.csv"
+    done_path = out / "done_months.txt"
+    done = set(done_path.read_text().split()) if done_path.exists() else set()
 
-    df["offset"] = df["offset"].astype(str)
-    df["boa_flag"] = df["boa_flag"].astype(str)
-    print("\nMeans by group (bare-soil pixels, red band):")
-    print(
-        df.groupby(["baseline", "boa_flag", "offset"])[
-            ["red_dn", "nir_dn", "red_item_offset", "red_scale_only"]
-        ]
-        .agg(["mean"])
-        .round(3)
-        .assign(n_scenes=df.groupby(["baseline", "boa_flag", "offset"]).size())
-        .to_string()
-    )
+    geom = load_aoi()
+    bbox = aoi_bbox(geom)
+    items = search_items(geom, args.start, args.end)
+    by_month = {}
+    for i in items:
+        by_month.setdefault((i.datetime.year, i.datetime.month), []).append(i)
 
-    near = df[
-        (pd.to_datetime(df["date"]) - pd.Timestamp(SWITCH)).abs()
-        <= pd.Timedelta(days=21)
-    ]
-    print("\nScenes within 3 weeks of the switch:")
-    print(near.drop(columns=["tile"]).to_string())
-    print(f"\nSaved {out / 'offset_check.csv'}")
+    odc.stac.configure_rio(cloud_defaults=True, aws={"aws_unsigned": True})
+
+    for (y, m), month_items in sorted(by_month.items()):
+        key = f"{y}-{m:02d}"
+        if key in done:
+            continue
+        failures = []
+        rows = process_month(
+            month_items, bbox, args.res, args.workers, args.min_pixels, failures
+        )
+        if rows:
+            pd.DataFrame(rows).to_csv(
+                csv_path, mode="a", header=not csv_path.exists(), index=False
+            )
+        if failures:
+            pd.DataFrame(failures).to_csv(
+                fail_path, mode="a", header=not fail_path.exists(), index=False
+            )
+        with done_path.open("a") as f:
+            f.write(key + "\n")
+        print(
+            f"{key}: {len(month_items)} scenes, {len(rows)} measured, "
+            f"{len(failures)} failed"
+        )
+
+    print(f"\nDone. Results: {csv_path}  Failures: {fail_path}")
 
 
 if __name__ == "__main__":

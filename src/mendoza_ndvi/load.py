@@ -45,3 +45,17 @@ def load_group(items, shift, bbox, res):
         refl = ((dn + shift) * SCALE).clip(min=0)
     out["scl"] = raw["scl"].astype("float32").where(raw["scl"] != 0)
     return out.assign_coords(time=raw.time.dt.floor("D"))
+
+
+def load_reflectance(items, bbox, res=20):
+    """Lazy dataset of red, nir, and scl. one slice per date"""
+    odc.stac.configure_rio(cloud_defaults=True, aws={"aws_unsigned": True})
+    groups = {}
+    for i in items:
+        groups.setdefault(dn_shift(i), []).append(i)
+
+    parts = [load_group(g, shift, bbox, res) for shift, g in groups.items()]
+    ds = parts[0]
+    for part in parts[1:]:
+        ds = ds.combine_first(part)
+    return ds.sortby("time")

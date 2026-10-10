@@ -1,7 +1,6 @@
 import argparse
 from datetime import date
 from pathlib import Path
-from sched import scheduler
 
 import dask
 import numpy as np
@@ -31,7 +30,7 @@ def load_items(items, bbox, res, workers):
         chunks={"x": 1024, "y": 1024},
         resampling="nearest",
     )
-    with dask.config.set(scheduler="threas", num_workers=workers):
+    with dask.config.set(scheduler="threads", num_workers=workers):
         return ds.compute()
 
 

@@ -25,3 +25,23 @@ def dn_shift(item):
         band = item.assets["red"].extra_fields.get("raster:bands", [{}])[0]
         return round((band.get("offset") or -0.1) / (band.get("scale") or SCALE))
     return 0
+
+
+def load_group(items, shift, bbox, res):
+    """Load scenes that need the same DN shift. return float32 reflectance (NaN = no data)."""
+    raw = odc.stac.load(
+        items,
+        bands=["red", "nir", "scl"],
+        bbox=bbox,
+        crs=UTM_CRS,
+        resolution=res,
+        groupby="solar_day",
+        chunks={"x": 1024, "y": 1024},
+        resampling="nearest",
+    )
+    out = xr.Dataset()
+    for band in ("red", "nir"):
+        dn = raw[band].astype("float32")
+        refl = ((dn + shift) * SCALE).clip(min=0)
+    out["scl"] = raw["scl"].astype("float32").where(raw["scl"] != 0)
+    return out.assign_coords(time=raw.time.dt.floor("D"))

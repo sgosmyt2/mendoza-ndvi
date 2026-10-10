@@ -95,6 +95,11 @@ def search_items(geom, start, end, collection=COLLECTION, retries=4, dedupe=True
         print(f"    {a} -> {b}: {len(chunk)} items")
         items.extend(chunk)
 
+    n = len(items)
+    items = [i for i in items if is_cog(i)]
+    if n != len(items):
+        print(f"    dropped {n - len(items)} non COG items")
+
     if dedupe:
         n = len(items)
         items = drop_superceded(items)

@@ -58,6 +58,37 @@ def measure(item, sl, min_pixels):
     }
 
 
+def process_month(items, bbox, res, workers, min_pixels, failures):
+    pairs = None
+    try:  # This attempts to to process the entire month at once
+        ds = load_items(items, bbox, res, workers)
+        by_time = {pd.Timestamp(i.datetime).tz_convert(None): i for i in items}
+        if len(by_time) == len(items) == ds.sizes["time"]:
+            pairs = [
+                (by_time[pd.Timestamp(t)], ds.isel(time=i))
+                for i, t in enumerate(ds.time.values)
+            ]
+    except Exception as err:  # noqa: BLE001
+        print(f"    month failed: {type(err).__name__}, retrying per scene")
+
+    if pairs is None:
+        pairs = []
+        for i in items:
+            for attempt in range(2):
+                try:
+                    sl = load_items([i], bbox, res, workers).isel(time=0)
+                    pairs.append((i, sl))
+                    break
+                except Exception as err:  # noqa: BLE001
+                    if attempt == 1:
+                        msg = str(err).replace("\n", " ")[:150]
+                        failures.append(
+                            {"id": i.id, "error": f"{type(err).__name__}: {msg}"}
+                        )
+    rows = [measure(i, sl, min_pixels) for i, sl in pairs]
+    return [r for r in rows if r is not None]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2021-11-01")

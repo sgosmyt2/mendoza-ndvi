@@ -4,7 +4,6 @@ import odc.stac
 import xarray as xr
 
 from mendoza_ndvi.search import UTM_CRS
-from scripts.check_offset import BARE_SOIL
 
 SCALE = 1e-4
 BARE_SOIL = 5

@@ -59,3 +59,8 @@ def load_reflectance(items, bbox, res=20):
     for part in parts[1:]:
         ds = ds.combine_first(part)
     return ds.sortby("time")
+
+
+def bare_soil_red(ds):
+    """Median red reflectance of SCL not vegetated pixels, per date"""
+    return ds.red.where(ds.scl == BARE_SOIL).median(dim=("y", "x"), skipna=True)

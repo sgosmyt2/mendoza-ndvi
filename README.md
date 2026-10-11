@@ -10,7 +10,7 @@ Cloud native Sentinel 2 pipeline that measures vegetation anomalies over the Uco
 
 - [x] Project setup and AOI
 - [x] STAC exploration and load benchmark
-- [ ] Lazy load and SCL masking
+- [x] Lazy load and SCL masking
 - [ ] Monthly NDVI composites
 - [ ] Climatology and zscore anomalies
 - [ ] COG + GeoParquet export
@@ -37,6 +37,12 @@ Streaming one month (7 dates, red + NIR + SCL, ~28 x 30 km AOI) from AWS Earth S
 Worker sweep at 20m: 4 workers 72s, 8 workers 38s, 16 workers 23s, 32 workers 27s. Speedup flattens beyond 16, so 16 is the default.
 
 Extrapolated from one month, a full 2017-2026 run should take well under 2 hours locally, so no cloud VM was needed. To be replaced with the measured total.
+
+## Data issues found and handled
+
+- **Duplicate scenes:** for 2018-2021 the catalogue holds reprocessed copies (baseline 05.00) next to the originals. For each tile and date, only the highest  processing baseline is kept.
+- **Unreadable files:** a few early scenes are JPEG 2000 in a different bucket and cannot be streamed by window. They are dropped.
+- **Reflectance offset:** the +0.1 offset introduced in Jan 2022 is recorded in the metadata of every later scene, but measuring bare ground across 2,000ish scenes showed it is actually present in the stored values for only 1 month window (25 Jan to 24 Feb 2022). Applying the metadata offset blindly would have shifted almost all later scenes. See `docs/methods.md`.
 
 ## Quick start
 

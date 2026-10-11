@@ -39,3 +39,35 @@ def summarise(ds, dilate_px, mask_snow, path):
         ax.axis("off")
     fig.tight_layout()
     fig.savefig(path, dpi=120)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--year", type=int, default=2023)
+    ap.add_argument("--month", type=int, default=3)
+    ap.add_argument("--res", type=int, default=20)
+    ap.add_argument("--workers", type=int, default=16)
+    ap.add_argument("--dilate", type=int, default=2)
+    ap.add_argument("--keep-snow", action="store_true")
+    ap.add_argument("--out", default="data")
+    args = ap.parse_args()
+
+    last = calendar.monthrange(args.year, args.month)[1]
+    start = f"{args.year}-{args.month:02d}-01"
+    end = f"{args.year}-{args.month:02d}-{last}"
+
+    geom = load_aoi()
+    items = search_items(geom, start, end)
+    ds = load_reflectance(items, aoi_bbox(geom), args.res)
+    with dask.config.set(scheduler="threads", num_workers=args.workers):
+        ds = ds.compute()
+
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    path = out / f"mask_check_{args.year}_{args.month:02d}_d{args.dilate}.png"
+    summarise(ds, args.dilate, not args.keep_snow, path)
+    print(f"\nSaved {path}")
+
+
+if __name__ == "__main__":
+    main()

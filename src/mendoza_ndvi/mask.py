@@ -17,3 +17,13 @@ def dilate(mask, px):
         for dx in range(2 * px + 1):
             out |= padded[:, dy : dy + h, dx : dx + w]
     return out
+
+
+def valid_mask(scl, dilate_px=2, mask_snow=True):
+    """True where a pixel is usable. scl is a (time, y, x) datarray"""
+    scl = scl.transpose("time", "y", "x")
+    vals = scl.values
+    classes = INVALID_CLASSES + ((SNOW,) if mask_snow else ())
+    invalid = np.isin(vals, classes) | np.isnan(vals)
+    invalid = dilate(invalid, dilate_px)
+    return xr.DataArray(~invalid, coords=scl.coords, dims=scl.dims)

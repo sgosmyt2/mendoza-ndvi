@@ -28,3 +28,15 @@ def write_month(comp, out_dir, key):
     ndvi.rio.to_raster(
         out_dir / f"ndvi_{key}.tif", driver="GTiff", tiled=True, compress="deflate"
     )
+
+
+def month_stats(key, comp, n_dates):
+    count = comp["n_valid"]
+    return {
+        "month": key,
+        "n_dates": n_dates,
+        "pct_no_valid": round(float((count == 0).mean()) * 100, 1),
+        "pct_under_3": round(float((count < 3).mean()) * 100, 1),
+        "median_count": float(count.median()),
+        "ndvi_median": round(float(comp["ndvi"].median(skipna=True)), 3),
+    }

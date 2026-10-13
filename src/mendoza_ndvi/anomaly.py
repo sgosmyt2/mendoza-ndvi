@@ -33,3 +33,8 @@ def climatology(comp_dir, years, month, min_valid=MIN_VALID, min_years=MIN_YEARS
             "n_years": n.astype("uint8"),
         }
     )
+
+
+def zscore(ndvi, clim, min_std=MIN_STD):
+    """(ndvi - mean) / max(std, min_std)"""
+    return (ndvi - clim["mean"]) / clim["std"].clip(min=min_std)

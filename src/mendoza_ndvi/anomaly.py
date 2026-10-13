@@ -18,3 +18,18 @@ def load_month(comp_dir, year, month, min_valid=MIN_VALID):
     ndvi = ndvi.squeeze("band", drop=True)
     count = count.squeeze("band", drop=True)
     return ndvi.where(count >= min_valid), count
+
+
+def climatology(comp_dir, years, month, min_valid=MIN_VALID, min_years=MIN_YEARS):
+    """Per pixel mean and std of one calendar month across the baseline years"""
+    layers = [load_month(comp_dir, y, month, min_valid)[0] for y in years]
+    stack = xr.concat(layers, dim=pd.Index(list(years), name="year"))
+    n = stack.count("year")
+    ok = n >= min_years
+    return xr.Dataset(
+        {
+            "mean": stack.mean("year", skipna=True).where(ok),
+            "std": stack.std("year", skipna=True, ddof=1).where(ok),
+            "n_years": n.astype("uint8"),
+        }
+    )

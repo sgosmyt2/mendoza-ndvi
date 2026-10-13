@@ -21,7 +21,8 @@ def write_month(comp, out_dir, key):
     """Write count_<key>.tif then ndvi_<key>.tif. The NDVI file goes last, so
     its existence means the month finished."""
     comp = comp.rio.write_crs(UTM_CRS)
-    comp["n_valid"].rio.to_raster(
+    count = comp["n_valid"].rio.write_nodata(None)
+    count.rio.to_raster(
         out_dir / f"count_{key}.tif", driver="GTiff", tiled=True, compress="deflate"
     )
     ndvi = comp["ndvi"].rio.write_nodata(np.nan)

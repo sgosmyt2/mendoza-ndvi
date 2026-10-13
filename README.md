@@ -11,7 +11,7 @@ Cloud native Sentinel 2 pipeline that measures vegetation anomalies over the Uco
 - [x] Project setup and AOI
 - [x] STAC exploration and load benchmark
 - [x] Lazy load and SCL masking
-- [ ] Monthly NDVI composites
+- [x] Monthly NDVI composites
 - [ ] Climatology and zscore anomalies
 - [ ] COG + GeoParquet export
 - [ ] Methods note, tests, CI
@@ -43,6 +43,7 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 - **Duplicate scenes:** for 2018-2021 the catalogue holds reprocessed copies (baseline 05.00) next to the originals. For each tile and date, only the highest  processing baseline is kept.
 - **Unreadable files:** a few early scenes are JPEG 2000 in a different bucket and cannot be streamed by window. They are dropped.
 - **Reflectance offset:** the +0.1 offset introduced in Jan 2022 is recorded in the metadata of every later scene, but measuring bare ground across 2,000ish scenes showed it is actually present in the stored values for only 1 month window (25 Jan to 24 Feb 2022). Applying the metadata offset blindly would have shifted almost all later scenes. See `docs/methods.md`.
+- **Thin winter months:** 14 of 105 composites have fewer than 3 valid observations for at least half their pixels, 10 of them in June toAugust. In the month examined (Aug 2018) the cause is cloud, not snow or cirrus. Each composite carries a valid observation count, and pixel months with fewer than 2 observations are excluded from the anomalies.
 
 ## Quick start
 

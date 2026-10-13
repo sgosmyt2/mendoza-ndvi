@@ -32,3 +32,20 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 ## Limitations
 - Scene level cloud cover describes a 110 km tile, not the AOI, so the usable dates heatmap is optimistic. Valid pixel counts are the real measure.
 - The offset rule is empirical.
+
+## Monthly composites
+- 105 composites, 2018-01 to 2026-09, 20 m, EPSG:32719: median NDVI of valid pixels (`ndvi_YYYY_MM.tif`, float32) and the number of valid observations (`count_YYYY_MM.tif`, uint8).
+- 5-9 dates per month. Only 12 months contain any pixels with no valid observation, and only July 2026 more than 5% (19.4%).
+
+## Thin months
+- 14 of 105 months have >= 50% of pixels under 3 valid observations: 2018-07, 2018-08, 2018-11, 2019-06, 2020-06, 2021-08, 2023-04, 2023-09, 2024-06, 2024-08,
+  2025-04, 2026-06, 2026-07, 2026-08.
+- 10 of the 14 are June-August. By calendar month: Jun 4, Aug 4, Jul 2, Apr 2, Sep 1, Nov 1.
+- Cause (checked for Aug 2018): SCL classes 66-100% of the AOI as cloud on 4 of 6 dates, cirrus <= 8%, snow 0%. The scene level cloud figure in the catalogue (used for the usable dates heatmap) described 5 usable dates for that month, so it overstates data.
+- Baseline years (2018-2022) with a usable month (< 50% thin) per calendar month: June 3/5, August 3/5, July 4/5, November 4/5, all others 5/5. Winter z-scores rest on a noisier climatology.
+- 8 analysis months are thin: 2023-04, 2023-09, 2024-06, 2024-08, 2025-04, 2026-06, 2026-07, 2026-08.
+
+## Minimum observations rule
+- A pixel month is used if it has >= 2 valid observations and a pixel needs >= 4 valid baseline years for a climatology. Thin months are kept but flagged as low confidence.
+- Rationale: a threshold of 3 would leave only 3 baseline years for June and August. The cost is that a thin month's composite is the mean of two images.
+- To do: rerun with a threshold of 3 and compare the z-scores (sensitivity check).

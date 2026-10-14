@@ -27,3 +27,20 @@ def list_months(comp_dir):
     """(year, month) for every ndvi_YYYY_mm.tif in the folder, sorted"""
     files = sorted(Path(comp_dir).glob("ndvi_*.tif"))
     return [tuple(int(p) for p in f.stem[5:].split("_")) for f in files]
+
+
+def stratum_stats(ndvi, count, strat):
+    """Mean NDVI, valid fraction and mean count for each stratum"""
+    v, c, s = ndvi.values, count.values, strat.values
+    groups = {"all": s != UNKNOWN}
+    groups.update({name: s == code for code, name in STRATA.items()})
+    out = {}
+    for name, g in groups.items():
+        n = int(g.sum())
+        sel = g & np.isfinite(v)
+        out[name] = {
+            "mean_ndvi": float(v[sel].mean()) if sel.any() else np.nan,
+            "valid_frac": float(sel.sum() / n) if n else np.nan,
+            "mean_count": float(c[g].mean()) if n else np.nan,
+        }
+    return out

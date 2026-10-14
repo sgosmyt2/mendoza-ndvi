@@ -49,3 +49,9 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 - A pixel month is used if it has >= 2 valid observations and a pixel needs >= 4 valid baseline years for a climatology. Thin months are kept but flagged as low confidence.
 - Rationale: a threshold of 3 would leave only 3 baseline years for June and August. The cost is that a thin month's composite is the mean of two images.
 - To do: rerun with a threshold of 3 and compare the z-scores (sensitivity check).
+
+## Anomaly limitations (so far)
+- With a 5 year baseline, z-scores have heavy tails: simulated no change data puts ~14% of pixels beyond |z| > 2 (5th/95th percentile +-2.3). January 2023 (12.7%) and June 2024 (13.3%) are at that level while March 2024 (31.8%) is not.
+- Baseline std varies from ~0.02 (bare desert) to ~0.28 (cropland, 95th pct, Mar). The std floor (0.02) binds on 6-16% of pixels. Per pixel z is not interpreted.
+- Bare ground NDVI (SCL class 5, 120m scene medians, shifted window corrected) in Dec-Mar: baseline years 0.256-0.289, 2023 0.243, 2024 0.233, 2025 0.243, 2026 0.263. Cause unresolved (real soil change vs processing/instrument) so no clean step by processing baseline (05.09 0.222, 05.10 0.236, 05.11 0.235, 05.12 0.255).
+- AOI median z, Feb-Mar 2023: -3.0/-3.1 raw, -2.0/-2.1 if the bare soil shift is removed.

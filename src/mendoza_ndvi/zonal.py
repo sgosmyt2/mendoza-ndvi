@@ -21,3 +21,9 @@ def make_strata(comp_dir, years, months=(1, 2, 3), edges=(0.3, 0.4)):
     codes = np.digitize(base.values, edges).astype("uint8")
     codes[np.isnan(base.values)] = UNKNOWN
     return base.copy(data=codes)
+
+
+def list_months(comp_dir):
+    """(year, month) for every ndvi_YYYY_mm.tif in the folder, sorted"""
+    files = sorted(Path(comp_dir).glob("ndvi_*.tif"))
+    return [tuple(int(p) for p in f.stem[5:].split("_")) for f in files]

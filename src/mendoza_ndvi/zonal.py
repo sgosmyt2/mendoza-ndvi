@@ -44,3 +44,21 @@ def stratum_stats(ndvi, count, strat):
             "mean_count": float(c[g].mean()) if n else np.nan,
         }
     return out
+
+
+def build_series(comp_dir, strata, min_valid=MIN_VALID):
+    """Long table, one row per month and stratum"""
+    rows = []
+    for year, mon in list_months(comp_dir):
+        ndvi, count = load_month(comp_dir, year, mon, min_valid)
+        for name, st in stratum_stats(ndvi, count, strata).items():
+            rows.append(
+                {
+                    "date": pd.Timestamp(year, mon, 1),
+                    "year": year,
+                    "mon": mon,
+                    "stratum": name,
+                    **st,
+                }
+            )
+    return pd.DataFrame(rows)

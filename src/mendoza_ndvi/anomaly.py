@@ -13,10 +13,10 @@ def load_month(comp_dir, year, month, min_valid=MIN_VALID):
     """(ndvi, count) for one month, NDVI is NaN where count < min_valid"""
     comp_dir = Path(comp_dir)
     key = f"{year}_{month:02d}"
-    ndvi = rioxarray.open_rasterio(comp_dir / f"ndvi_{key}.tif", masked=True)
-    count = rioxarray.open_rasterio(comp_dir / f"count_{key}.tif")
-    ndvi = ndvi.squeeze("band", drop=True)
-    count = count.squeeze("band", drop=True)
+    with rioxarray.open_rasterio(comp_dir / f"ndvi_{key}.tif", masked=True) as src:
+        ndvi = src.squeeze("band", drop=True).load()
+    with rioxarray.open_rasterio(comp_dir / f"count_{key}.tif") as src:
+        count = src.squeeze("band", drop=True).load()
     return ndvi.where(count >= min_valid), count
 
 

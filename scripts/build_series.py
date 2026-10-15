@@ -15,8 +15,9 @@ def plot(df, strata, path):
         share = (
             float(
                 (
-                    strata.values == [k for k, v in STRATA.items() if v == name][0]
-                ).mean()  # noqa: RUF015
+                    strata.values
+                    == [k for k, v in STRATA.items() if v == name][0]  # noqa: RUF015
+                ).mean()
             )
             * 100
         )

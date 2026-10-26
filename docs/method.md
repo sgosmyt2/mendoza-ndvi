@@ -55,3 +55,9 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 - Baseline std varies from ~0.02 (bare desert) to ~0.28 (cropland, 95th pct, Mar). The std floor (0.02) binds on 6-16% of pixels. Per pixel z is not interpreted.
 - Bare ground NDVI (SCL class 5, 120m scene medians, shifted window corrected) in Dec-Mar: baseline years 0.256-0.289, 2023 0.243, 2024 0.233, 2025 0.243, 2026 0.263. Cause unresolved (real soil change vs processing/instrument) so no clean step by processing baseline (05.09 0.222, 05.10 0.236, 05.11 0.235, 05.12 0.255).
 - AOI median z, Feb-Mar 2023: -3.0/-3.1 raw, -2.0/-2.1 if the bare soil shift is removed.
+
+## Stratum Sensitivity
+- Strata from baseline mean NDVI of Jan-Mar. Main cut 0.3/0.4 chosen from the histogram before looking at results: bare 36%, mixed 19%, vegetated 44%.
+- Cuts 0.25/0.35 and 0.35/0.45 give vegetated median z of -0.78 and -0.89 (main: -0.83). Vegetated mean z becomes more negative as the class gets purer (-0.57, -0.71, -0.87).
+- The purest bare class (< 0.25) has mean z +0.09 and z std 1.63, noise alone for a 5 year baseline gives ~1.55. It has its own low episode in winter 2023.
+- Analysis period summer peaks sit below the baseline band. Oct-Dec 2024 and 2025 look above it.

@@ -78,3 +78,22 @@ def add_anomalies(df, base_years, min_frac=0.8, min_count=3, min_std=MIN_STD):
     out["in_baseline"] = out["year"].isin(base_years)
     out["low_conf"] = (out["valid_frac"] < min_frac) | (out["mean_count"] < min_count)
     return out
+
+
+def leave_one_year_out(df, base_years, key="stratum", min_frac=0.8, min_std=MIN_STD):
+    """Score each baseline year against the other baseline years only."""
+    anomaly_cols = ["clim_mean", "clim_std", "diff", "z"]
+    base = df[df["year"].isin(base_years)].drop(columns=anomaly_cols, errors="ignore")
+    rows = []
+    for y in base_years:
+        others = base[(base["year"] != y) & (base["valid_frac"] >= min_frac)]
+        clim = (
+            others.groupby([key, "mon"])["mean_ndvi"]
+            .agg(clim_mean="mean", clim_std="std")
+            .reset_index()
+        )
+        this = base[base["year"] == y].merge(clim, on=[key, "mon"], how="left")
+        this["diff"] = this["mean_ndvi"] - this["clim_mean"]
+        this["z"] = this["diff"] / this["clim_std"].clip(lower=min_std)
+        rows.append(this)
+    return pd.concat(rows, ignore_index=True)

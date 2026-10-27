@@ -66,7 +66,7 @@ def build_series(comp_dir, strata, min_valid=MIN_VALID):
 
 def add_anomalies(df, base_years, min_frac=0.8, min_count=3, min_std=MIN_STD):
     """Add baseline climatology, difference, zscore and a low confidence flag."""
-    base = df[df["year"].isin(base_years)]
+    base = df[df["year"].isin(base_years) & (df["valid_frac"] >= min_frac)]
     clim = (
         base.groupby(["stratum", "mon"])["mean_ndvi"]
         .agg(clim_mean="mean", clim_std="std")

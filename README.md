@@ -12,9 +12,13 @@ Cloud native Sentinel 2 pipeline that measures vegetation anomalies over the Uco
 - [x] STAC exploration and load benchmark
 - [x] Lazy load and SCL masking
 - [x] Monthly NDVI composites
-- [ ] Climatology and zscore anomalies
+- [x] Climatology and zscore anomalies
 - [ ] COG + GeoParquet export
 - [ ] Methods note, tests, CI
+
+## Future Addon
+
+Checking artifact with a separate satellite (landsat likely) to see if the deficit is consistent
 
 ## What it does
 
@@ -24,6 +28,12 @@ Cloud native Sentinel 2 pipeline that measures vegetation anomalies over the Uco
 4. Builds monthly median NDVI composites with a valid observation count.
 5. Computes zscore anomalies against a per calendar month baseline climatology.
 6. Exports anomaly rasters (COG) and zonal summaries (GeoParquet).
+
+## Results
+
+![Monthly NDVI by stratum](docs/images/stratum_series.png)
+
+Over the vegetated part of the AOI (44% of pixels), NDVI in 2023-2026 ran about 0.07-0.08 below the 2018-2022 baseline in February-March and about 0.07 above it in October. The bare desert shows no overall offset. Deviations in 2023-2026 are 1.3-1.6x larger than those of the baseline years scored against each other, so the change is larger than year to year noise. The cause is not established. Averages are over 3-4 years per calendar month, and the baseline is only five years. See `docs/methods.md` for the checks and their limits.
 
 ## Performance
 

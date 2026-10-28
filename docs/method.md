@@ -66,3 +66,8 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 - Baseline years scored against the other four, rms difference (NDVI): bare 0.019, mixed 0.026, vegetated 0.033 (main cuts 0.3/0.4). Analysis period against all five: 0.029 / 0.035 / 0.052 (1.35-1.6x); 25-39% of zscores beyond |z| > 2 (pure noise: 14.2%).
 - Purest bare class (baseline Jan-Mar NDVI < 0.25, ~19% of AOI): analysis mean difference 0.000, rms 0.023 vs 0.018 in the baseline (1.28x), 22% beyond |z| > 2. No constant offset, the larger stratum excess at the main cut came from sparse vegetation. A modest residual excess is unexplained.
 - Mean NDVI difference by calendar month (analysis period, thin months excluded, 3-4 years per cell): vegetated -0.081 (Feb), -0.073 (Mar), +0.074 (Oct); bare and mixed show the same signs at about half the size. The sign flips with the season, so a constant calibration offset is unlikely. Cause (earlier green up and lower summer peak, water availability, heat) is not established.
+
+## Artifact check: one processing version
+- 2025 was processed entirely as baseline 05.11 (349 of 349 scenes). Within that year the NDVI difference from baseline runs from -0.105 (Feb, vegetated) to +0.084 (Oct). Bare and mixed show the same signs at about half the size. A constant processing version offset cannot produce both signs, so it is ruled out.
+- Not ruled out: season dependent differences between processing versions or sensors (baseline years vs 2023+). An independent sensor comparison (e.g. Landsat) would test this and it is left as future work.
+- Cause of the vegetation change itself (water availability, heat, crop mix, irrigation timing) is not established.

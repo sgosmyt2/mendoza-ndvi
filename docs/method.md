@@ -61,3 +61,8 @@ Extrapolated from one month, a full 2017-2026 run should take well under 2 hours
 - Cuts 0.25/0.35 and 0.35/0.45 give vegetated median z of -0.78 and -0.89 (main: -0.83). Vegetated mean z becomes more negative as the class gets purer (-0.57, -0.71, -0.87).
 - The purest bare class (< 0.25) has mean z +0.09 and z std 1.63, noise alone for a 5 year baseline gives ~1.55. It has its own low episode in winter 2023.
 - Analysis period summer peaks sit below the baseline band. Oct-Dec 2024 and 2025 look above it.
+
+## Leave-one-year-out check and cause of the excess
+- Baseline years scored against the other four, rms difference (NDVI): bare 0.019, mixed 0.026, vegetated 0.033 (main cuts 0.3/0.4). Analysis period against all five: 0.029 / 0.035 / 0.052 (1.35-1.6x); 25-39% of zscores beyond |z| > 2 (pure noise: 14.2%).
+- Purest bare class (baseline Jan-Mar NDVI < 0.25, ~19% of AOI): analysis mean difference 0.000, rms 0.023 vs 0.018 in the baseline (1.28x), 22% beyond |z| > 2. No constant offset, the larger stratum excess at the main cut came from sparse vegetation. A modest residual excess is unexplained.
+- Mean NDVI difference by calendar month (analysis period, thin months excluded, 3-4 years per cell): vegetated -0.081 (Feb), -0.073 (Mar), +0.074 (Oct); bare and mixed show the same signs at about half the size. The sign flips with the season, so a constant calibration offset is unlikely. Cause (earlier green up and lower summer peak, water availability, heat) is not established.

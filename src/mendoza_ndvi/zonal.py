@@ -64,7 +64,9 @@ def build_series(comp_dir, strata, min_valid=MIN_VALID):
     return pd.DataFrame(rows)
 
 
-def add_anomalies(df, base_years, min_frac=0.8, min_count=3, min_std=MIN_STD):
+def add_anomalies(
+    df, base_years, min_frac=0.8, min_count=3, min_std=MIN_STD, key="stratum"
+):
     """Add baseline climatology, difference, zscore and a low confidence flag."""
     base = df[df["year"].isin(base_years) & (df["valid_frac"] >= min_frac)]
     clim = (

@@ -92,3 +92,33 @@ def majority_stratum(strata, k):
             fracs.append(np.nanmean(share, axis=(1, 3)))
     best = np.argmax(np.stack(fracs), axis=0)
     return np.array(list(STRATA.values()))[best]
+
+
+def build_cell_table(comp_dir, strata, base_years, cell_px=50, min_valid=MIN_VALID):
+    """Create a geodataframe with one row per cell and month, with baseline anomalies."""
+    months = list_months(comp_dir)
+    template = load_month(comp_dir, *months[0], min_valid)[0]
+    ids, geoms = cell_geometry(template, cell_px)
+    stratum = majority_stratum(strata, cell_px).ravel()
+
+    frames = []
+    for year, mon in months:
+        ndvi, count = load_month(comp_dir, year, mon, min_valid)
+        m, v, c = cell_stats(ndvi.values, count.values, cell_px)
+        frames.append(
+            pd.DataFrame(
+                {
+                    "cell_ids": ids,
+                    "stratum": stratum,
+                    "date": pd.Timestamp(year, mon, 1),
+                    "year": year,
+                    "month": mon,
+                    "mean_ndvi": m.ravel(),
+                    "valid_frac": v.ravel(),
+                    "mean_count": c.ravel(),
+                }
+            )
+        )
+    df = add_anomalies(pd.concat(frames, ignore_index=True), base_years, key="cell_id")
+    geom = df["cell_id"].map(dict(zip(ids, geoms)))
+    return gpd.GeoDataFrame(df, geometry=geom, crs=UTM_CRS)

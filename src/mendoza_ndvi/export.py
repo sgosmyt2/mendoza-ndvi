@@ -44,3 +44,11 @@ def write_anomaly_cog(path, diff, z, count):
         overview_resampling="AVERAGE",
     )
     tmp.unlink()
+
+
+def blocks(a, k):
+    """Rehsape a 2d array into (cells_y, k, cells_x, k) and padding the edges with NaN"""
+    ny, nx = a.shape
+    py, px = (-ny) % k, (-nx) % k
+    a = np.pad(a.astype("float64"), ((0, py), (0, px)), constant_values=np.nan)
+    return a.reshape((ny + py) // k, k, (nx + px) // k, k)

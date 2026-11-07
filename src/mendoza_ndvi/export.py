@@ -52,3 +52,15 @@ def blocks(a, k):
     py, px = (-ny) % k, (-nx) % k
     a = np.pad(a.astype("float64"), ((0, py), (0, px)), constant_values=np.nan)
     return a.reshape((ny + py) // k, k, (nx + px) // k, k)
+
+
+def cell_stats(ndvi, count, k):
+    """output per cell mean NDVI, valid fraction and mean count"""
+    nd, ct = blocks(ndvi, k), blocks(count, k)
+    real = np.isfinite(blocks(np.ones(ndvi.shape), k)).sum(axis=(1, 3))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        mean_ndvi = np.nanmean(nd, axis=(1, 3))
+        mean_count = np.nanmean(ct, axis=(1, 3))
+    valid_frac = np.isfinite(nd).sum(axis=(1, 3)) / real
+    return mean_ndvi, valid_frac, mean_count

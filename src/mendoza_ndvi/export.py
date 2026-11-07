@@ -80,3 +80,15 @@ def cell_geometry(template, k):
             ids.append(f"r{iy:02d}c{ix:02d}")
             geoms.append(box(xmin, ymin, xmax, ymax))
     return ids, geoms
+
+
+def majority_stratum(strata, k):
+    """Name of the most common stratum in each cell."""
+    fracs = []
+    for code in STRATA:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            share = blocks((strata.values == code).astype("float64"), k)
+            fracs.append(np.nanmean(share, axis=(1, 3)))
+    best = np.argmax(np.stack(fracs), axis=0)
+    return np.array(list(STRATA.values()))[best]

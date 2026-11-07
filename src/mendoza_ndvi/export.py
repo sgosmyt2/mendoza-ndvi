@@ -64,3 +64,19 @@ def cell_stats(ndvi, count, k):
         mean_count = np.nanmean(ct, axis=(1, 3))
     valid_frac = np.isfinite(nd).sum(axis=(1, 3)) / real
     return mean_ndvi, valid_frac, mean_count
+
+
+def cell_geometry(template, k):
+    """Cell ids and polygons for a k * k grid"""
+    t = template.rio.transform()
+    res = abs(t.a)
+    ny, nx = template.shape
+    x0, y0 = t.c, t.f
+    ids, geoms = [], []
+    for iy in range(-(-ny // k)):
+        for ix in range(-(-nx // k)):
+            xmin, xmax = x0 + ix * k * res, min(x0 + (ix + 1) * k * res, x0 + nx * res)
+            ymax, ymin = y0 - iy * k * res, max(y0 - (iy + 1) * k * res, y0 - ny * res)
+            ids.append(f"r{iy:02d}c{ix:02d}")
+            geoms.append(box(xmin, ymin, xmax, ymax))
+    return ids, geoms
